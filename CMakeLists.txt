@@ -4,6 +4,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(BUILD_EXAMPLES "Build examples" OFF)
+option(BUILD_TESTS "Build tests" OFF)
 
 project(print)
 
@@ -13,10 +14,6 @@ target_include_directories(print PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
-gsed -i '/option(BUILD_EXAMPLES "Build examples" OFF)/a\
-option(BUILD_TESTS "Build tests" OFF)
-' CMakeLists.txt
-
 
 if(BUILD_EXAMPLES)
   file(GLOB EXAMPLE_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/examples/*.cpp")
@@ -45,6 +42,6 @@ if(BUILD_TESTS)
   add_test(NAME check COMMAND check)
 endif()
 
-
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION include)
 install(EXPORT print-config DESTINATION cmake)
+
