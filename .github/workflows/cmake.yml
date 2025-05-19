@@ -1,28 +1,27 @@
-name: CMake Build
+name: CMake Build & Test
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main, master ]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - name: Клонировать репозиторий
-      uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Установить зависимости
-      run: sudo apt-get update && sudo apt-get install -y cmake g++
+      - name: Установка зависимостей
+        run: sudo apt update && sudo apt install -y cmake g++ git
 
-    - name: Создать директорию сборки
-      run: mkdir build
+      - name: Сборка с тестами
+        run: |
+          cmake -H. -B_build -DBUILD_TESTS=ON
+          cmake --build _build
 
-    - name: Сконфигурировать проект
-      run: cmake -S . -B build
+      - name: Запуск тестов
+        run: |
+          cmake --build _build --target test
 
-    - name: Собрать проект
-      run: cmake --build build
