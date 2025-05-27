@@ -31,7 +31,7 @@ jobs:
       run: |
         cd build
         lcov --capture --directory . --output-file coverage.info --ignore-errors mismatch
-        lcov --remove coverage.info '/usr/*' '*/_deps/*' '*/googletest-src/*' --output-file coverage.cleaned.info
+        lcov --remove coverage.info '/usr/*' '*/_deps/*' --output-file coverage.cleaned.info --ignore-errors unused
         lcov --list coverage.cleaned.info
 
     - name: List coverage summary
