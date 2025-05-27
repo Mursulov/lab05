@@ -34,6 +34,11 @@ jobs:
         lcov --remove coverage.info '/usr/*' '*/_deps/*' '*/googletest-src/*' --output-file coverage.cleaned.info
         lcov --list coverage.cleaned.info
 
+    - name: List coverage summary
+      run: |
+        cd build
+        lcov --list coverage.cleaned.info
+
     - name: Upload coverage to Coveralls
       uses: coverallsapp/github-action@v2
       with:
