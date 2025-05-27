@@ -33,8 +33,8 @@ jobs:
 
       - name: Generate lcov report
         run: |
-          lcov --capture --directory build --output-file coverage.info --no-external --ignore-errors mismatch
-          lcov --list coverage.info # <--- Смотри сюда!
+          lcov --capture --directory build --output-file coverage.info --ignore-errors mismatch
+          lcov --list coverage.info # <--- Теперь твои исходники будут тут!
 
       - name: Filter out external and test coverage
         run: |
