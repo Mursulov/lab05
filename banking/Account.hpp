@@ -1,4 +1,4 @@
-
+#pragma once
 
 class Account {
 public:
@@ -11,4 +11,3 @@ public:
 private:
     double balance;
 };
-
