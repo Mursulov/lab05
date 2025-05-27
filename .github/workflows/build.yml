@@ -7,40 +7,26 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Install dependencies
-      run: sudo apt-get update && sudo apt-get install -y lcov
+      - name: Set up CMake
+        uses: jwlawson/actions-setup-cmake@v1
 
-    - name: Configure and build with coverage
-      run: |
-        cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=ON
-        cmake --build build
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y cmake g++ clang make
 
-    - name: Run tests
-      run: |
-        cd build
-        ctest --output-on-failure
+      - name: Build
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Debug
+          cmake --build build
 
-    - name: Generate coverage report
-      run: |
-        cd build
-        lcov --capture --directory . --output-file coverage.info --ignore-errors mismatch
-        lcov --remove coverage.info '/usr/*' '*/_deps/*' --output-file coverage.cleaned.info --ignore-errors unused
-        lcov --list coverage.cleaned.info
-
-    - name: List coverage summary
-      run: |
-        cd build
-        lcov --list coverage.cleaned.info
-
-    - name: Upload coverage to Coveralls
-      uses: coverallsapp/github-action@v2
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        path-to-lcov: build/coverage.cleaned.info
+      - name: Run tests
+        run: |
+          cd build && ctest
