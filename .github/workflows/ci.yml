@@ -36,8 +36,13 @@ jobs:
           lcov --capture --directory build --output-file coverage.info --no-external --ignore-errors mismatch
           lcov --list coverage.info
 
+      - name: Filter out external and test coverage
+        run: |
+          lcov --remove coverage.info '*/_deps/*' '*/googletest/*' '*/tests/*' -o coverage_filtered.info
+          lcov --list coverage_filtered.info
+
       - name: Upload to Coveralls
         uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: coverage.info
+          path-to-lcov: coverage_filtered.info
