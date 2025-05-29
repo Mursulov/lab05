@@ -1,11 +1,11 @@
-add_library(banking STATIC
-    Account.cpp
-    Transaction.cpp
-)
+cmake_minimum_required(VERSION 3.10)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-target_include_directories(banking PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+project(banking)
 
-if(CODE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(banking PRIVATE --coverage -O0 -g)
-    target_link_options(banking PRIVATE --coverage)
-endif()
+add_library(account STATIC ${CMAKE_CURRENT_SOURCE_DIR}/Account.cpp)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
+add_library(transaction STATIC ${CMAKE_CURRENT_SOURCE_DIR}/Transaction.cpp)
+target_link_libraries(transaction account)
