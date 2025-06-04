@@ -3,7 +3,7 @@
 
 переписаны тесты (test)
 test.cpp
-[тык](https://github.com/Mursulov/lab05/tests)
+[тык](https://github.com/Mursulov/lab05/blob/main/test.cpp)
    
   был подключен субмодуль гугл тестов 
 
