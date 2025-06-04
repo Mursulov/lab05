@@ -1,78 +1,83 @@
 #include <gtest/gtest.h>
-#include <stdexcept>
-#include "Account.h"
-#include "Transaction.h"
 #include <gmock/gmock.h>
+#include <iostream>
+#include <Account.h>
+#include <Transaction.h>
 
-class MockAccount : public Account {
- private:
-  int id;
-  int balance;
- public:
-  MockAccount(int id, int balance) : Account(id, balance) {}
-  MOCK_METHOD(int, GetBalance, (), (const, override));
-  MOCK_METHOD(void, ChangeBalance, (int), (override));
-  MOCK_METHOD(void, Lock, (), (override));
-  MOCK_METHOD(void, Unlock, (), (override));
+using ::testing::_;
+using ::testing::Expectation;
+
+class MockBankAccount : public Account {
+public:
+    MockBankAccount(int account_id, int initial_balance) : Account(account_id, initial_balance) {}
+    
+    MOCK_METHOD(int, GetCurrentBalance, ());
+    MOCK_METHOD(void, UpdateBalance, (int amount));
+    MOCK_METHOD(int, GetAccountId, (), (const));
+    MOCK_METHOD(void, SecureLock, ());
+    MOCK_METHOD(void, SecureUnlock, ());
 };
 
-class MockTransaction : public Transaction {
- public:
-  MockTransaction() : Transaction() {}
-  MOCK_METHOD(void, SaveToDataBase, (Account& from, Account& to, int sum), (override));
+class MockMoneyTransfer : public Transaction {
+public:
+    MOCK_METHOD(int, GetTransactionFee, ());
+    MOCK_METHOD(void, SetTransactionFee, (int fee_amount));
+    MOCK_METHOD(bool, ExecuteTransfer, (Account& sender, Account& recipient, int transfer_amount));
 };
 
-using ::testing::AtLeast;
+namespace BankAccountTests {
+    TEST(BankAccountTest, ShouldThrowWhenAccountNotLocked) {
+        Account client_account(123, 500);
+        
+        EXPECT_THROW(client_account.ChangeBalance(100), std::runtime_error);
+        
+        client_account.Lock();
+        client_account.ChangeBalance(100);
+        EXPECT_EQ(client_account.GetBalance(), 600);
+        
+        EXPECT_THROW(client_account.Lock(), std::runtime_error);
+        client_account.Unlock();
+    }
 
-TEST(Account, Mock) {
-  MockAccount ac1(1, 1000);
-  EXPECT_CALL(ac1, GetBalance()).Times(AtLeast(1));
-  std::cout <<  ac1.GetBalance() << std::endl;
-  EXPECT_CALL(ac1, Lock()).Times(AtLeast(1));
-  ac1.Lock();
-  EXPECT_CALL(ac1, ChangeBalance(1)).Times(AtLeast(1));
-  ac1.ChangeBalance(1);
-  EXPECT_CALL(ac1, Unlock()).Times(AtLeast(1));
-  ac1.Unlock();
-  
+    TEST(BankAccountTest, ShouldHandleAccountOperations) {
+        MockBankAccount client_account(456, 1000);
+        
+        Expectation balance_check = EXPECT_CALL(client_account, GetCurrentBalance()).Times(3);
+        Expectation lock_op = EXPECT_CALL(client_account, SecureLock()).Times(1).After(balance_check);
+        Expectation unlock_op = EXPECT_CALL(client_account, SecureUnlock()).Times(1);
+        EXPECT_CALL(client_account, UpdateBalance(_)).Times(2);
+        EXPECT_CALL(client_account, GetAccountId()).Times(1);
+
+        client_account.GetCurrentBalance();
+        client_account.GetAccountId();
+        client_account.SecureUnlock();
+        client_account.UpdateBalance(500);
+        client_account.GetCurrentBalance();
+        client_account.UpdateBalance(-200);
+        client_account.GetCurrentBalance();
+        client_account.SecureLock();
+    }
 }
 
-TEST(Transaction, Mock) {
-  Account ac1(1, 10000);
-  Account ac2(2, 10000);
-  MockTransaction t1;
-  EXPECT_CALL(t1, SaveToDataBase(ac1, ac2, 1999)).Times(AtLeast(1));
-  t1.Make(ac1, ac2, 1999);
-  
-  
-}
+namespace MoneyTransferTests {
+    TEST(MoneyTransferTest, ShouldProcessFinancialTransaction) {
+        MockMoneyTransfer money_transfer;
+        MockBankAccount sender_account(1, 500);
+        MockBankAccount receiver_account(2, 300);
+        MockBankAccount company_account(3, 10000);
+        MockBankAccount charity_account(4, 2000);
 
-TEST(Account, Methods) {
-  Account ac1(1, 1000);
-  EXPECT_EQ(1000, ac1.GetBalance());
-  ac1.Lock();
-  ac1.ChangeBalance(2000);
-  ac1.Unlock();
-  EXPECT_EQ(3000, ac1.GetBalance());
-  try {
-    ac1.ChangeBalance(1);
-  }
-  catch (std::runtime_error& el) {}
-  EXPECT_EQ(3000, ac1.GetBalance());
-}
+        EXPECT_CALL(money_transfer, GetTransactionFee()).Times(1);
+        EXPECT_CALL(money_transfer, SetTransactionFee(_)).Times(1);
+        EXPECT_CALL(money_transfer, ExecuteTransfer(_, _, _)).Times(2);
+        EXPECT_CALL(sender_account, GetCurrentBalance()).Times(1);
+        EXPECT_CALL(receiver_account, GetCurrentBalance()).Times(1);
 
-TEST(Transaction, Methods) {
-  Account ac1(1, 10000);
-  Account ac2(2, 10000);
-  Transaction t1;
-  Transaction t2; t2.set_fee(500);
-  try {t1.Make(ac1, ac1, 100); EXPECT_EQ(1, 0);}
-  catch (std::logic_error& el) {}
-  try {t1.Make(ac1, ac2, -100); EXPECT_EQ(1, 0);}
-  catch (std::invalid_argument& el) {}
-  try {t1.Make(ac1, ac2, 0); EXPECT_EQ(1, 0);}
-  catch (std::logic_error& el) {}
-  EXPECT_EQ(false, t2.Make(ac1, ac2, 200));
-  t1.Make(ac1, ac2, 1999);
-  EXPECT_EQ(ac1.GetBalance(), 8000); EXPECT_EQ(ac2.GetBalance(), 11999);
+        money_transfer.SetTransactionFee(150);
+        money_transfer.ExecuteTransfer(sender_account, receiver_account, 2000);
+        money_transfer.GetTransactionFee();
+        sender_account.GetCurrentBalance();
+        receiver_account.GetCurrentBalance();
+        money_transfer.ExecuteTransfer(company_account, charity_account, 5000);
+    }
 }

@@ -1,11 +1,11 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16.3)
+set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
+project(banking)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-project(banking)
-
-add_library(account STATIC ${CMAKE_CURRENT_SOURCE_DIR}/Account.cpp)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-
-add_library(transaction STATIC ${CMAKE_CURRENT_SOURCE_DIR}/Transaction.cpp)
-target_link_libraries(transaction account)
+add_library(banking STATIC
+Account.cpp
+Account.h 
+Transaction.cpp
+Transaction.h
+)

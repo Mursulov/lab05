@@ -15,8 +15,6 @@ class Account {
 
   // Virtual to test.
   virtual void Unlock();
-  
-  friend bool operator==(const Account el1, const Account el2);
   int id() const { return id_; }
 
  private:
